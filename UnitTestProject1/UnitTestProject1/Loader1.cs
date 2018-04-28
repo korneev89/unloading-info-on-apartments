@@ -39,33 +39,44 @@ namespace csharp_example
 			var moreButton = 
 				driver.FindElement(By.CssSelector("#building-11 > div > div > div > div > div > button"));
 
-			Thread.Sleep(1500);
+			/*Thread.Sleep(1500);
 			while (IsElementVisible(driver, By.CssSelector("#building-11 > div > div > div > div > div > button")))
 			{
 				//wait.Until(ExpectedConditions.ElementToBeClickable(moreButton));
 				moreButton.Click();
 				Thread.Sleep(500);
-			}
+			}*/
 			//Thread.Sleep(30000);
 
 			SpreadsheetInfo.SetLicense("EIKU-U5LX-6MSF-Z84S");
 			ExcelFile ef = new ExcelFile();
 			ExcelWorksheet ws = ef.Worksheets.Add("выгрузка");
+			ExcelWorksheet ws2 = ef.Worksheets.Add("data");
 
 			DataTable dt = new DataTable();
 
-			// add columns
-			var c1 = dt.Columns.Add("Ссылка", typeof(string));
-			var c2 = dt.Columns.Add("Очередь", typeof(string));
-			var c3 = dt.Columns.Add("Корпус", typeof(int));
-			var c4 = dt.Columns.Add("Номер", typeof(int));
-			var c5 = dt.Columns.Add("Комнат", typeof(int));
-			var c6 = dt.Columns.Add("Общая", typeof(double));
-			var c7 = dt.Columns.Add("Жилая", typeof(double));
-			var c8 = dt.Columns.Add("Этаж", typeof(int));
-			var c9 = dt.Columns.Add("Оплата", typeof(long));
-			var c10 = dt.Columns.Add("Статус", typeof(string));
-			var c11 = dt.Columns.Add("Отделка", typeof(string));
+			//add columns
+			dt.Columns.Add("Ссылка", typeof(string));
+			dt.Columns.Add("Очередь", typeof(string));
+			dt.Columns.Add("Корпус", typeof(int));
+			dt.Columns.Add("Номер", typeof(int));
+			dt.Columns.Add("Комнат", typeof(int));
+			dt.Columns.Add("Общая", typeof(double));
+			dt.Columns.Add("Жилая", typeof(double));
+			dt.Columns.Add("Этаж", typeof(int));
+			dt.Columns.Add("Оплата", typeof(long));
+			dt.Columns.Add("Статус", typeof(string));
+			dt.Columns.Add("Отделка", typeof(string));
+			dt.Columns.Add("Выбор", typeof(string));
+
+			DataTable dt2 = new DataTable();
+
+			//add columns
+			dt2.Columns.Add("A", typeof(string));
+			dt2.Columns.Add("B", typeof(string));
+			dt2.Columns.Add("C", typeof(string));
+			dt2.Columns.Add("D", typeof(string));
+
 
 
 			var rows = driver.FindElements(By.CssSelector("tr.j-building-tr-link"));
@@ -133,8 +144,19 @@ namespace csharp_example
 					r7,
 					r8,
 					v9,
-					r10);
+					r10,
+					"");
 		
+			}
+
+			for (var i = 1; i < 11; i++)
+
+			{
+				dt2.Rows.Add(
+					"",
+					"",
+					"",
+					i);
 			}
 
 			// add cell
@@ -147,10 +169,29 @@ namespace csharp_example
 					ColumnHeaders = true,
 					StartRow = 0
 				});
+
+			ws2.InsertDataTable(dt2,
+				new InsertDataTableOptions()
+				{
+					ColumnHeaders = false,
+					StartRow = 0
+				});
+
+			var rowsCount = ws.Rows.Count;
+			for (int i = 0; i < rowsCount; i++)
+			{
+				var s = string.Concat("=COUNTIF(data!$D$1:$D$10; A", (i + 1).ToString(), ")>0");
+				if (i > 0) { ws.Columns[11].Cells[i].Formula = s; }
+			}
+
+
 			// Autofit columns and some print options (for better look when exporting to pdf, xps and printing).
 			var columnCount = ws.CalculateMaxUsedColumns();
 			for (int i = 0; i < columnCount; i++)
+			{
+				if (i == 8) ws.Columns[i].Style.NumberFormat = @"#,##0\ ""₽"";\-#,##0\ ""₽""";
 				ws.Columns[i].AutoFit();
+			}
 
 			var date = DateTime.Now.ToString("yyyy.MM.dd_HH-mm-ss");
 			var fileName = String.Concat(@"D:/выгрузка_",date,".xlsx");
